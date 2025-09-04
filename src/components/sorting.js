@@ -6,11 +6,26 @@ export function initSorting(columns) {
         let order = null;
 
         if (action && action.name === 'sort') {
-            // @todo: #3.1 — запомнить выбранный режим сортировки
+            // Запомним выбранный режим сортировки
+            action.dataset.value = sortMap[action.dataset.value]; // Текущее следующее состояние из карты
+            field = action.dataset.field; // Информация о сортируемом поле
+            order = action.dataset.value; // Направление сортировки
 
-            // @todo: #3.2 — сбросить сортировки остальных колонок
+            // Сбросим сортировки остальных колонок
+            columns.forEach(column => {
+                // Если это не та кнопка, что нажал пользователь, то сбрасываем ее в начальное состояние
+                if (column.dataset.field !== action.dataset.field) { 
+                    column.dataset.value = 'none';
+                }
+            }); 
         } else {
-            // @todo: #3.3 — получить выбранный режим сортировки
+            // Получим выбранный режим сортировки
+            columns.forEach(column => {
+                if (column.dataset.value !== 'none') { // Ищем колонку, которая находится не в начальном состоянии (предполагаем, что одна)
+                    field = column.dataset.field; // Сохраняем информацию о сортируемом поле
+                    order = column.dataset.value; // Сохраняем направление сортировки
+                }
+            }); 
         }
 
         return sortCollection(data, field, order);
