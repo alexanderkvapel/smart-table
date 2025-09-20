@@ -38,11 +38,11 @@ export function initFiltering(elements) {
     const filter = {};
 
     // Обрабатываем очистку поля
-    if (action === 'clear') {
+    if (action && action.name === 'clear') {
       // Находим родительский элемент
-      const parent = action.closest('.table-column'); 
-      // Находим input/select
-      const input = parent.querySelector('input, select'); 
+      const parent = action.parentElement; 
+      // Находим input
+      const input = parent.querySelector('input'); 
       const fieldToClear = action.dataset.field;
 
       // Сбрасываем значение поля

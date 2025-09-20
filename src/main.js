@@ -55,8 +55,8 @@ async function render(action) {
   let query = {};
 
   query = applyPagination(query, state, action);
-  query = applyFiltering(query, state, action);
   query = applySearching(query, state, action);
+  query = applyFiltering(query, state, action);
   query = applySorting(query, state, action);
 
   // Запрашиваем данные с собранными параметрами
@@ -97,8 +97,8 @@ const { applyPagination, updatePagination } = initPagination(
     return element;
   }
 );
+const applySearching = initSearching('search');
 const { applyFiltering, updateIndexes } = initFiltering(sampleTable.filter.elements);
-const applySearching = initSearching(sampleTable.search.elements);
 const applySorting = initSorting([
   // Передаем массив элементов, которые вызывают сортировку, чтобы изменять их визуальное представление
   sampleTable.header.elements.sortByDate,
