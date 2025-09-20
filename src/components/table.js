@@ -1,8 +1,7 @@
-import { cloneTemplate } from "../lib/utils.js";
+import { cloneTemplate } from '../lib/utils.js';
 
 /**
  * Инициализирует таблицу и вызывает коллбэк при любых изменениях и нажатиях на кнопки
- *
  * @param {Object} settings
  * @param {(action: HTMLButtonElement | undefined) => void} onAction
  * @returns {{container: Node, elements: *, render: render}}
@@ -11,8 +10,8 @@ export function initTable(settings, onAction) {
   const {
     tableTemplate,
     rowTemplate,
-    before = ["search", "header", "filter"],
-    after = ["pagination"],
+    before = ['search', 'header', 'filter'],
+    after = ['pagination'],
   } = settings;
   const root = cloneTemplate(tableTemplate);
 
@@ -29,13 +28,13 @@ export function initTable(settings, onAction) {
   });
 
   // Обработчики событий
-  root.container.addEventListener("change", () => {
+  root.container.addEventListener('change', () => {
     onAction();
   });
-  root.container.addEventListener("reser", () => {
-    setTimeout``(onAction);
+  root.container.addEventListener('reset', () => {
+    setTimeout(onAction, 100);
   });
-  root.container.addEventListener("submit", (e) => {
+  root.container.addEventListener('submit', (e) => {
     e.preventDefault();
     onAction(e.submitter);
   });

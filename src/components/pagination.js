@@ -1,54 +1,86 @@
-import { getPages } from "../lib/utils.js";
+import { getPages } from '../lib/utils.js';
 
-export const initPagination = (
-  { pages, fromRow, toRow, totalRows },
-  createPage
-) => {
+/**
+ * Пагинация
+ * @param {*} { pages, fromRow, toRow, totalRow } 
+ * @param {*} createPage Функция заполнения кнопок страниц данными
+ * @returns {Object} { updatePagination, applyPagination }
+ */
+export const initPagination = ({ pages, fromRow, toRow, totalRows }, createPage) => {
   // Подготовим шаблон кнопки для страницы и очистим контейнер
-  const pageTemplate = pages.firstElementChild.cloneNode(true); // В качестве шаблона берем первый элемент
+  // В качестве шаблона берем первый элемент
+  const pageTemplate = pages.firstElementChild.cloneNode(true); 
+
+  // Общее кол-во страниц
+  let pageCount;
+
+  // Очищаем таблицу от данных
   pages.firstElementChild.remove();
 
-  return (data, state, action) => {
-    const rowsPerPage = state.rowsPerPage; // Кол-во строк на странице
-    const pageCount = Math.ceil(data.length / rowsPerPage); // Число страниц
-    let page = state.page; // Страница переменной
+  /**
+   * Функция инициализации пагинации
+   * @param {*} query Параметры запроса
+   * @param {Object} state Состояние полей
+   * @param {String} action Действие для пагинации
+   */
+  const applyPagination = (query, state, action) => {
+    // Кол-во строк на странице
+    const limit = state.rowsPerPage;
+    // Переменная страницы
+    let page = state.page;
 
-    // Обработаем действия
-    if (action) {
-      switch (
-        action.name // Переход на...
-      ) {
-        case "prev": // предыдущую страницу
-          page = Math.max(1, page - 1);
-          break;
-        case "next": // следующую страницу
-          page = Math.min(pageCount, page + 1);
-          break;
-        case "first": // первую страницу
-          page = 1;
-          break;
-        case "last": // последнюю страницу
-          page = pageCount;
-          break;
-      }
+    // Обработаем действия перехода на ...
+    if (action) switch (action.name) {
+      // предыдущую страницу
+      case "prev": 
+        page = Math.max(1, +page - 1);
+        break;
+      // следующую страницу
+      case "next": 
+        page = Math.min(pageCount, +page + 1);
+        break;
+      // первую страницу
+      case "first": 
+        page = 1;
+        break;
+      // последнюю страницу
+      case "last": 
+        page = pageCount;
+        break;
     }
 
-    const visiblePages = getPages(page, pageCount, 5); // Получим массив страниц, которые нужно показать, выводим только 5 страниц
-    pages.replaceChildren(
-      ...visiblePages.map((pageNumber) => {
-        // Перебираем их и создаём для них кнопку
-        const el = pageTemplate.cloneNode(true); // Клонируем шаблон, который запомнили ранее
-        return createPage(el, pageNumber, pageNumber === page); // Вызываем колбэк из настроек, чтобы заполнить кнопку данными
-      })
-    );
+    return Object.assign({}, query, { limit, page });
+  };
 
-    // Обновить статус пагинации
-    fromRow.textContent = (page - 1) * rowsPerPage + 1; // С какой строки выводим
-    toRow.textContent = Math.min(page * rowsPerPage, data.length); // До какой страницы выводим
-    totalRows.textContent = data.length; // Сколько всего строк выводим на всех страницах вместе
+  /**
+   * Функция перерисовки пагинации
+   * @param {Number} total 
+   * @param {} { номер текущей страницы, лимит записей на одну страницу }  
+   */
+  const updatePagination = (total, { page, limit }) => {
+    pageCount = Math.ceil(total / limit);
 
-    const skip = (page - 1) * rowsPerPage; // Сколько строк нужно пропустить
+    // Массив страниц для отображения
+    const visiblePages = getPages(page, pageCount, 5);
 
-    return data.slice(skip, skip + rowsPerPage);
+    pages.replaceChildren(...visiblePages.map(pageNumber => {
+      // Клонируем шаблон, который запомнили ранее
+      const el = pageTemplate.cloneNode(true);
+      // Вызываем колбэк из настроек, чтобы заполнить кнопку данными
+      return createPage(el, pageNumber, pageNumber === page);
+    }));
+
+    // Обновляем статус пагинации
+    // С какой строки выводим
+    fromRow.textContent = (page - 1) * limit + 1;
+    // До какой страницы выводим
+    toRow.textContent = Math.min((page * limit), total);
+    // Сколько всего строк выводим на всех страницах вместе
+    totalRows.textContent = total;
+  };
+
+  return { 
+    updatePagination, 
+    applyPagination 
   };
 };

@@ -1,43 +1,79 @@
-import { createComparison, defaultRules } from "../lib/compare.js";
+/**
+ * Инициализация фильтров в таблице
+ * @param {*} elements Селект, куда добавляем опции для фильтрации
+ * @param {*} indexes Опции для фильтрации
+ * @returns { updateIndexes, applyFiltering }
+ */
+export function initFiltering(elements) {
+  /**
+   * Функция заполнения выпадающих списков фильров опциями для филтрации
+   * @param {*} elements Селект, куда добавляем опции для фильтрации
+   * @param {*} indexes Опции для фильтрации
+   */
+  const updateIndexes = (elements, indexes) => {
+    // Заполняем выпадающие списки опциями
+    Object.keys(indexes).forEach((elementName) => {
+      // В каждый элемент добавляем опции
+      elements[elementName].append(
+        ...Object.values(indexes[elementName]).map(name => {
+          // Создаем и возвращаем тег опции
+          const option = document.createElement('option');
 
-const compare = createComparison(defaultRules);
+          option.textContent = name;
+          option.value = name;
 
-export function initFiltering(elements, indexes) {
-  // Заполняем выпадающие списки опциями
-  Object.keys(indexes).forEach((elementName) => {
-    // В каждый элемент добавляем опции
-    elements[elementName].append(
-        ...Object.values(indexes[elementName]).map((name) => {
-        // Создаем и возвращаем тег опции
-        const option = document.createElement("option");
+          return option;
+        })
+      )
+    });
+  };
 
-        option.value = name;
-        option.textContent = name;
+  /**
+   * Функция перерисовки при применении фильтра
+   * @param {*} query Параметры запроса
+   * @param {Object} state Состояние полей
+   * @param {String} action Действие для фильтрации
+   */
+  const applyFiltering = (query, state, action) => {
+    const filter = {};
 
-        return option;
-      })
-    );
-  });
-
-  return (data, state, action) => {
     // Обрабатываем очистку поля
-    if (action === "clear") {
-      const parent = action.closest(".table-column"); // Находим родительский элемент
-      const input = parent.querySelector("input, select"); // Находим input/select
+    if (action === 'clear') {
+      // Находим родительский элемент
+      const parent = action.closest('.table-column'); 
+      // Находим input/select
+      const input = parent.querySelector('input, select'); 
+      const fieldToClear = action.dataset.field;
 
       // Сбрасываем значение поля
       if (input) {
-        input.value = "";
+        input.value = '';
       }
 
       // Обновляем состояние фильтра
-      const fieldToClear = action.dataset.field;
       if (fieldToClear) {
-        state[fieldToClear] = "";
+        state[fieldToClear] = '';
       }
-    }
+    };
 
-    // Отфильтровываем данные используя компаратор
-    return data.filter((row) => compare(row, state));
+    Object.keys(elements).forEach(key => {
+      if (elements[key]) {
+        // ищем поля ввода в фильтре с непустыми данными
+        if (['INPUT', 'SELECT'].includes(elements[key].tagName) && elements[key].value) {
+          // чтобы сформировать в query вложенный объект фильтра
+          filter[`filter[${elements[key].name}]`] = elements[key].value; 
+        }
+      }
+    });
+
+    // если в фильтре что-то добавилось, применим к запросу
+    return Object.keys(filter).length 
+            ? Object.assign({}, query, filter) 
+            : query;
+  };
+
+  return {
+    updateIndexes,
+    applyFiltering
   };
 }
